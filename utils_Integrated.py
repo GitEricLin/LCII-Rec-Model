@@ -16,26 +16,21 @@ class IIRNNDataHandler:
         load_time = time.time()
         dataset = pickle.load(open(self.dataset_path, 'rb'))
         print("|- dataset loaded in", str(time.time()-load_time), "s")
-
         self.trainset = dataset['trainset']
         self.testset = dataset['testset']
         self.train_session_lengths = dataset['train_session_lengths']
         self.test_session_lengths = dataset['test_session_lengths']
-    
         self.num_users = len(self.trainset) +1
         if len(self.trainset) != len(self.testset):
             raise Exception("""Testset and trainset have different 
                     amount of users.""")
-
         # II_RNN stuff
         self.MAX_SESSION_REPRESENTATIONS = max_sess_reps
         self.LT_INTERNALSIZE = lt_internalsize
-
         # LOG
         self.test_log = test_log
         logging.basicConfig(filename=self.test_log,level=logging.INFO)
         #logging.basicConfig(filename=self.test_log,level=logging.DEBUG)
-        
         # batch control
         self.reset_user_batch_data()
 
@@ -53,7 +48,6 @@ class IIRNNDataHandler:
 
     def reset_user_session_representations(self):
         istate = np.zeros([self.LT_INTERNALSIZE])
-
         # session representations for each user is stored here
         self.user_session_representations = [None]*self.num_users
         # the number of (real) session representations a user has
@@ -152,7 +146,6 @@ class IIRNNDataHandler:
     
     def store_current_epoch(self, epoch, epoch_file):
         pickle.dump(epoch, open(epoch_file, 'wb'))
-
     
     def add_timestamp_to_message(self, message):
         timestamp = str(datetime.datetime.now())
@@ -166,20 +159,16 @@ class IIRNNDataHandler:
         message += str(stats) +'\n'
         logging.info(message)
         
-
     def log_config(self, config):
         config = self.add_timestamp_to_message(config)
         logging.info(config)
-
     
     def store_user_session_representations(self, sessions_representations, user_list):
         for i in range(len(user_list)):
             user = user_list[i]
             session_representation = sessions_representations[i]
-
             num_reps = self.num_user_session_representations[user]
             self.user_session_representations[user].append(session_representation)
-
             #self.num_user_session_representations[user] = min(self.MAX_SESSION_REPRESENTATIONS, num_reps+1)
             self.num_user_session_representations[user] = self.MAX_SESSION_REPRESENTATIONS
         

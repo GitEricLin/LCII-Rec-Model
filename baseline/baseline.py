@@ -11,23 +11,17 @@ from baseline_test_util import Tester
 amazon = "amazon"
 MovieLens_1M = 'ml-1m'
 steam = 'steam'
-
 ### Choose dataset here
 dataset = MovieLens_1M
-
 ### Specify the correct path to the dataset
 DATASET_DIR = (os.path.abspath(os.path.join(os.path.dirname("__file__"),os.path.pardir)))
-if dataset == steam or dataset == MovieLens_1M:
-    dataset_path = DATASET_DIR + '/datasets/'+dataset+'/pickle/4_train_test_split.pickle'
-else:    
-    dataset_path = DATASET_DIR + '/datasets/'+dataset+'/4_train_test_split.pickle'
+if dataset == steam or dataset == MovieLens_1M: dataset_path = DATASET_DIR + '/datasets/'+dataset+'/pickle/4_train_test_split.pickle'
+else: dataset_path = DATASET_DIR + '/datasets/'+dataset+'/4_train_test_split.pickle'
 
 date_now = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d')
 log_file = './testlog/'+str(date_now)+'-testing'+'.txt'
-
 isExists_file = os.path.exists('./testlog')
-if not isExists_file:
-    os.makedirs('./testlog') 
+if not isExists_file: os.makedirs('./testlog') 
 
 # Does not really matter. Only needs to be here because of my earler short sightedness. Used by test_util
 BATCHSIZE = 2
@@ -67,13 +61,10 @@ def most_recent():
     x, y, sl = datahandler.get_next_test_batch()
     while len(x) > int(BATCHSIZE/2):
         prediction_batch = []
-
         for i in range(len(x)):
             prediction_batch.append(most_recent_sequence_predicions(x[i], sl[i]))
-
         tester.evaluate_batch(prediction_batch, y, sl)
         x, y, sl = datahandler.get_next_test_batch()
-
     test_stats, current_recall5, current_recall10, current_recall20, current_mrr5, current_mrr10, current_mrr20, current_ndcg5, current_ndcg10, current_ndcg20 = tester.get_stats_and_reset()
     print("Recall@5    : "  +str(current_recall5)    +" | "+"Recall@10    : "  +str(current_recall10)    +" | "+"Recall@20    : "  +str(current_recall20))
     print("MRR@5       : "  +str(current_mrr5)       +" | "+"MRR@10       : "  +str(current_mrr10)       +" | "+"MRR@20       : "  +str(current_mrr20))
@@ -86,18 +77,15 @@ def most_popular():
     datahandler.reset_user_batch_data()
     popularity_count = [0]*(num_items+1)
     tester = Tester()
-
     # Training
     x, y, sl = datahandler.get_next_train_batch()
     while len(x) > int(BATCHSIZE/2):
         for i in range(len(x)):
             sequence_length = sl[i]+1
             items = x[i][:sequence_length]
-            
             for item in items:
                 popularity_count[item] += 1
         x, y, sl = datahandler.get_next_train_batch()
-    
     top_k = sorted(range(len(popularity_count)), key=lambda i:popularity_count[i])
     top_k = top_k[-num_predictions:]
     top_k = list(reversed(top_k))
@@ -107,16 +95,13 @@ def most_popular():
     x, y, sl = datahandler.get_next_test_batch()
     while len(x) > int(BATCHSIZE/2):
         prediction_batch = []
-
         for i in range(len(x)):
             sequence_predictions = []
             for j in range(sl[i]):
                 sequence_predictions.append(top_k)
             prediction_batch.append(sequence_predictions)
-
         tester.evaluate_batch(prediction_batch, y, sl)
         x, y, sl = datahandler.get_next_test_batch()
-    
     test_stats, current_recall5, current_recall10, current_recall20, current_mrr5, current_mrr10, current_mrr20, current_ndcg5, current_ndcg10, current_ndcg20 = tester.get_stats_and_reset()
     print("Recall@5    : "  +str(current_recall5)    +" | "+"Recall@10    : "  +str(current_recall10)    +" | "+"Recall@20    : "  +str(current_recall20))
     print("MRR@5       : "  +str(current_mrr5)       +" | "+"MRR@10       : "  +str(current_mrr10)       +" | "+"MRR@20       : "  +str(current_mrr20))
@@ -140,14 +125,11 @@ def knn():
         for b in range(len(x)):
             sequence_length = sl[b]+1
             items = x[b][:sequence_length]
-            
             # For each item in the session, increment cooccurences with the remaining items in the session
             for i in range(len(items)-1):
                 for j in range(i+1, len(items)):
-                    if items[j] not in cooccurrances[items[i]]:
-                        cooccurrances[items[i]][items[j]] = 0
+                    if items[j] not in cooccurrances[items[i]]: cooccurrances[items[i]][items[j]] = 0
                     cooccurrances[items[i]][items[j]] += 1
-
         x, y, sl = datahandler.get_next_train_batch()
     
     # Find the highest cooccurences
@@ -158,7 +140,6 @@ def knn():
         d = sorted(d, key=lambda x:x[1])
         d = [x[0] for x in d[-num_predictions:]]
         preds[i] = list(reversed(d))
-
     del(cooccurrances)
 
     #Testing
@@ -167,7 +148,6 @@ def knn():
     x, y, sl = datahandler.get_next_test_batch()
     while len(x) > int(BATCHSIZE/2):
         prediction_batch = []
-
         for b in range(len(x)):
             sequence_predictions = []
             for i in range(sl[b]):
@@ -176,7 +156,6 @@ def knn():
             prediction_batch.append(sequence_predictions)
         tester.evaluate_batch(prediction_batch, y, sl)
         x, y, sl = datahandler.get_next_test_batch()
-
     test_stats, current_recall5, current_recall10, current_recall20, current_mrr5, current_mrr10, current_mrr20, current_ndcg5, current_ndcg10, current_ndcg20 = tester.get_stats_and_reset()
     print("Recall@5    : "  +str(current_recall5)    +" | "+"Recall@10    : "  +str(current_recall10)    +" | "+"Recall@20    : "  +str(current_recall20))
     print("MRR@5       : "  +str(current_mrr5)       +" | "+"MRR@10       : "  +str(current_mrr10)       +" | "+"MRR@20       : "  +str(current_mrr20))

@@ -26,8 +26,7 @@ PAD_VALUE = 0
 
 # Create bert4rec folder
 isExists_file = os.path.exists(DATASET_DIR + '/bert4rec')
-if not isExists_file:
-    os.makedirs(DATASET_DIR) 
+if not isExists_file: os.makedirs(DATASET_DIR) 
     
 def file_exists(filename):
     return os.path.isfile(filename)
@@ -52,10 +51,7 @@ def user_sessions_sorting():
             product_id     = line[1]
             #reviewTime     = line[2]
             unixReviewTime = line[3]
-            
-            if user_id not in user_orders:
-                user_orders[user_id] = [] 
-                
+            if user_id not in user_orders: user_orders[user_id] = [] 
             user_orders[user_id].append([product_id, unixReviewTime]) 
 
 def sorting_user_orders():
@@ -67,19 +63,16 @@ def sorting_user_orders():
 def connecting_orders_and_users():
     results={}
     results_orders={}
-    
     for user_id in user_orders.keys():
         results[user_id] = {}
         for x in user_orders[user_id]:
-            if x[1] not in results[user_id]:
-                results[user_id][x[1]]=[]
+            if x[1] not in results[user_id]: results[user_id][x[1]]=[]
             results[user_id][x[1]].append([len(results[user_id][x[1]])+1,x[0]])
     for user_id in results.keys():
         results_orders[user_id] = []
         for unixReviewTime in results[user_id].keys():
             results_orders[user_id].append(results[user_id][unixReviewTime])
         user_orders[user_id]=results_orders[user_id]
-    
     del results
     del results_orders
 
@@ -92,24 +85,19 @@ def calculating_some_statistics():
     for user, orders in user_orders.items():
         n_sessions += len(orders)
         for order in orders:
-            if len(order) > longest:
-                longest = len(order)
-            if len(order) < shortest:
-                shortest = len(order) 
-            if str(len(order)) not in session_lengths.keys():
-                session_lengths[str(len(order))] = 0
+            if len(order) > longest: longest = len(order)
+            if len(order) < shortest: shortest = len(order) 
+            if str(len(order)) not in session_lengths.keys(): session_lengths[str(len(order))] = 0
             session_lengths[str(len(order))] += 1
             for x in order:
                 product = x[1]
-                if product not in products:
-                    products[product] = True
+                if product not in products: products[product] = True
     print("num products (labels):", len(products.keys()))
     print("num users:", len(user_orders.keys()))
     print("num sessions:", n_sessions) 
     print("shortest session:", shortest) 
     print("longest session:", longest)
-    print()
-    print("SESSION LENGTHS:")
+    print("\nSESSION LENGTHS:")
     for i, j in session_lengths.items():
         print(i, j)
     save_pickle(user_orders, DATASET_USER_SESSIONS_SORTING)
@@ -117,12 +105,10 @@ def calculating_some_statistics():
 ## user_sessions_rename
 def user_sessions_rename():
     user_sessions = load_pickle(DATASET_USER_SESSIONS_SORTING)
-    
     # Split sessions
     def split_single_session(session):  
         splitted = [session[i:i+MAX_SESSION_LENGTH] for i in range(0, len(session), MAX_SESSION_LENGTH)]
-        if len(splitted[-1]) < 2:
-            del splitted[-1]
+        if len(splitted[-1]) < 2: del splitted[-1]
         return splitted
 
     def perform_session_splits(sessions):
@@ -130,31 +116,24 @@ def user_sessions_rename():
         for session in sessions:
             splitted_sessions += split_single_session(session)
         return splitted_sessions
-
     for k in user_sessions.keys():
         sessions = user_sessions[k]
         user_sessions[k] = perform_session_splits(sessions)
-    
     # Remove too short sessions
     for k in user_sessions.keys():
         sessions = user_sessions[k]
         user_sessions[k] = [s for s in sessions if len(s)>1]
-    
     # Remove users with too few sessions
     users_to_remove = []
     for u, sessions in user_sessions.items():
-        if len(sessions) < MINIMUM_REQUIRED_SESSIONS:
-            users_to_remove.append(u)
-    
+        if len(sessions) < MINIMUM_REQUIRED_SESSIONS: users_to_remove.append(u)
     for u in users_to_remove:
         del(user_sessions[u])
-        
     # Rename user_ids
     if len(users_to_remove) > 0:
         nus = {}
         for k, v in user_sessions.items():
             nus[len(nus)] = user_sessions[k] 
-    
     # Rename labels
     lab = {}
     for k, v in nus.items():
@@ -162,24 +141,19 @@ def user_sessions_rename():
             for i in range(len(session)):
                 if isinstance(session[i][1], str) == True:
                     l = session[i][1]
-                    if l not in lab:
-                        lab[l] = len(lab)+1
+                    if l not in lab: lab[l] = len(lab)+1
                     session[i][1] = lab[l]
-    
     print('Check if there is a null value.\n')
     for k, v in nus.items():
         for session in v:
-            if not session:
-                print('Has Empty !!!!!'+ str(session))
-    
+            if not session: print('Has Empty !!!!!'+ str(session))
     save_pickle(nus, DATASET_USER_SESSIONS_RENAME)
 
 def cut_and_assign_sids_to_rows(rows):
     sid = 0
     uid2rows = {}
     for uid, timestamp, iid in tqdm(rows, desc="* organize uid2rows"):
-        if uid not in uid2rows:
-            uid2rows[uid] = []
+        if uid not in uid2rows: uid2rows[uid] = []
         uid2rows[uid].append((iid, timestamp))
     rows = []
     uids = list(uid2rows.keys())
@@ -190,20 +164,16 @@ def cut_and_assign_sids_to_rows(rows):
         sid += 1
         _, previous_timestamp = user_rows[0]
         for iid, timestamp in user_rows:
-            if timestamp != previous_timestamp:
-                sid += 1
-            
+            if timestamp != previous_timestamp: sid += 1
             tba.append((uid, iid, sid, timestamp))
             sid2count[sid] = sid2count.get(sid, 0) + 1
             previous_timestamp = timestamp
-
         rows.extend(tba)
     return rows
 
 ## BERT4Rec: general_preprocessing
 def BERT4Rec_general_preprocessing():
     dataset = load_pickle(DATASET_USER_SESSIONS_RENAME)
-    
     user_list_1 = []
     count_timestamp = 0
     for user, all_session in dataset.items():
@@ -211,17 +181,14 @@ def BERT4Rec_general_preprocessing():
             count_timestamp +=1
             for action in session:
                 user_list_1.append([user, count_timestamp, action[1]])
-            
     user_list_2 = pd.DataFrame(user_list_1) 
     user_list_2.columns = ['uid', 'timestamp', 'iid']
     df_rows = user_list_2
-    
     # cut and assign sid
     print("- cut and assign sid")
     rows = cut_and_assign_sids_to_rows(df_rows.values)
     df_rows = pd.DataFrame(rows)
     df_rows.columns = ['uid', 'iid', 'sid', 'timestamp']
-    
     # map uid -> uindex
     print("- map uid -> uindex")
     uids = set(df_rows['uid'])
@@ -230,7 +197,6 @@ def BERT4Rec_general_preprocessing():
     df_rows = df_rows.drop(columns=['uid'])
     with open(os.path.join(data_dir, 'uid2uindex.pkl'), 'wb') as fp:
         pickle.dump(uid2uindex, fp)
-    
     # map iid -> iindex
     print("- map iid -> iindex")
     iids = set(df_rows['iid'])
@@ -239,13 +205,11 @@ def BERT4Rec_general_preprocessing():
     df_rows = df_rows.drop(columns=['iid'])
     with open(os.path.join(data_dir, 'iid2iindex.pkl'), 'wb') as fp:
         pickle.dump(iid2iindex, fp)
-    
     # save df_rows
     print("- save df_rows")
     df_rows.to_pickle(os.path.join(data_dir, 'df_rows.pkl'))
     df_rows = DATASET_DIR + '/df_rows.pkl'
     df_rows = load_pickle(df_rows)
-    
     # split train, valid, test
     print("- split train, valid, test")
     train_data = {}
@@ -257,31 +221,22 @@ def BERT4Rec_general_preprocessing():
         train_data[uindex] = user_rows[:-2]
         valid_data[uindex] = user_rows[-2: -1]
         test_data[uindex] = user_rows[-1:]
-    
     # save splits
     print("- save splits")
-    with open(os.path.join(data_dir, 'train.pkl'), 'wb') as fp:
-        pickle.dump(train_data, fp)
-    with open(os.path.join(data_dir, 'valid.pkl'), 'wb') as fp:
-        pickle.dump(valid_data, fp)
-    with open(os.path.join(data_dir, 'test.pkl'), 'wb') as fp:
-        pickle.dump(test_data, fp)
-    
-    
+    with open(os.path.join(data_dir, 'train.pkl'), 'wb') as fp: pickle.dump(train_data, fp)
+    with open(os.path.join(data_dir, 'valid.pkl'), 'wb') as fp: pickle.dump(valid_data, fp)
+    with open(os.path.join(data_dir, 'test.pkl'), 'wb') as fp: pickle.dump(test_data, fp)
     ## BERT4Rec: random negative
     print("do general random negative sampling")
-    
     # load materials
     print("- load materials")
-    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp:
-        df_rows = pickle.load(fp)
+    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp: df_rows = pickle.load(fp)
     with open(os.path.join(data_dir, 'uid2uindex.pkl'), 'rb') as fp:
         uid2uindex = pickle.load(fp)
         user_count = len(uid2uindex)
     with open(os.path.join(data_dir, 'iid2iindex.pkl'), 'rb') as fp:
         iid2iindex = pickle.load(fp)
         item_count = len(iid2iindex)
-    
     # sample random negatives
     print("- sample random negatives")
     ns = {}
@@ -298,25 +253,18 @@ def BERT4Rec_general_preprocessing():
     
     # save sampled random nagetives
     print("- save sampled random nagetives")
-    with open(os.path.join(data_dir, 'ns_random.pkl'), 'wb') as fp:
-        pickle.dump(ns, fp)
-    
-    
+    with open(os.path.join(data_dir, 'ns_random.pkl'), 'wb') as fp: pickle.dump(ns, fp)
     ## BERT4Rec: popular negative
     print("do general popular negative sampling")
-    
     # load materials
     print("- load materials")
-    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp:
-        df_rows = pickle.load(fp)
+    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp: df_rows = pickle.load(fp)
     with open(os.path.join(data_dir, 'uid2uindex.pkl'), 'rb') as fp:
         uid2uindex = pickle.load(fp)
         user_count = len(uid2uindex)
-    
     # reorder items
     print("- reorder items")
     reordered_iindices = list(df_rows.groupby(['iindex']).size().sort_values().index)[::-1]
-    
     # sample popular negatives
     print("- sample popular negatives")
     ns = {}
@@ -324,22 +272,15 @@ def BERT4Rec_general_preprocessing():
         seen_iindices = set(df_rows[df_rows['uindex'] == uindex]['iindex'])
         sampled_iindices = []
         for iindex in reordered_iindices:
-            if len(sampled_iindices) == num_samples:
-                break
-            if iindex in seen_iindices:
-                continue
+            if len(sampled_iindices) == num_samples: break
+            if iindex in seen_iindices: continue
             sampled_iindices.append(iindex)
         ns[uindex] = sampled_iindices
-    
     # save sampled popular nagetives
     print("- save sampled popular nagetives")
-    with open(os.path.join(data_dir, 'ns_popular.pkl'), 'wb') as fp:
-        pickle.dump(ns, fp)
-    
-    
+    with open(os.path.join(data_dir, 'ns_popular.pkl'), 'wb') as fp: pickle.dump(ns, fp)
     ## BERT4Rec: count stats
     print("task: count stats")
-    
     print('\t'.join([
         "dname",
         "#user",
@@ -360,30 +301,21 @@ def BERT4Rec_general_preprocessing():
         "cc_95",
     ]))
     
-    
     # load data
-    with open(os.path.join(data_dir, 'uid2uindex.pkl'), 'rb') as fp:
-        uid2uindex = pickle.load(fp)
-    with open(os.path.join(data_dir, 'iid2iindex.pkl'), 'rb') as fp:
-        iid2iindex = pickle.load(fp)
-    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp:
-        df_rows = pickle.load(fp)
-    
+    with open(os.path.join(data_dir, 'uid2uindex.pkl'), 'rb') as fp: uid2uindex = pickle.load(fp)
+    with open(os.path.join(data_dir, 'iid2iindex.pkl'), 'rb') as fp: iid2iindex = pickle.load(fp)
+    with open(os.path.join(data_dir, 'df_rows.pkl'), 'rb') as fp: df_rows = pickle.load(fp)
     # get density
     num_users = len(uid2uindex)
     num_items = len(iid2iindex)
     num_rows = len(df_rows)
     density = num_rows / num_users / num_items
-    
     # get item count per user
     icounts = df_rows.groupby('uindex').size().to_numpy()  # allow duplicates
-    
     # get session count per user
     scounts = df_rows.groupby('uindex').agg({'sid': 'nunique'})['sid'].to_numpy()
-    
     # get item count per user-session
     ccounts = df_rows.groupby(['uindex', 'sid']).size().to_numpy()
-    
     # report
     print('\t'.join([
         'amazon',
@@ -415,8 +347,7 @@ if __name__ == "__main__":
     connecting_orders_and_users()
     print("Calculating some statistics...")
     calculating_some_statistics()
-    if not file_exists(DATASET_USER_SESSIONS_RENAME):
-        user_sessions_rename()
+    if not file_exists(DATASET_USER_SESSIONS_RENAME): user_sessions_rename()
     print("BERT4Rec general preprocessing...")
     BERT4Rec_general_preprocessing()
     print("\n\nDone.")

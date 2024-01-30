@@ -22,17 +22,12 @@ with open(DATASET_FILE_1, 'rt', buffering=10000, encoding='utf8') as dataset:
     for i in dataset:
         print(i)
         count += 1
-        if count == 3:
-            print()
-            break
-
+        if count == 3: break
 count = 0
 for i in user_sessions:
     print(i)
     count += 1
-    if count == 3:
-        print()
-        break
+    if count == 3: break
 
 ## user_sessions_filter (dict)
 type(user_sessions_filter)
@@ -47,16 +42,12 @@ count = 0
 for i in user_sessions_filter.items():
     print(i)
     count += 1
-    if count == 3:
-        print()
-        break
-
+    if count == 3: break
 print("查閱: 輸入資料情況")
 count_action_to_user = []
 count_sess_to_user = []
 count_act_to_sess = []
 for user, session in user_sessions_filter.items():
-    #print(len(session))
     count_sess_to_user.append(len(session))
     temp_c = 0
     for action in session:
@@ -103,18 +94,14 @@ for user, user_sess in trainset.items():
         user_count +=1
     User[user] += 1
     count_sess_len = len(user_sess)  
-    if count_sess_len not in Session:
-        Session[count_sess_len] = 0
+    if count_sess_len not in Session: Session[count_sess_len] = 0
     Session[count_sess_len] += 1
     session_nums_train = session_nums_train + len(user_sess)
     for each_session in user_sess:
         items_in_sess = items_in_sess + len(each_session)
         for i in each_session:
-            if i[1] not in item_type:
-                item_type[i[1]] = True
-
-            if i == [0, 0]:
-                pading_count += 1
+            if i[1] not in item_type: item_type[i[1]] = True
+            if i == [0, 0]: pading_count += 1
 
 for user, user_sess in testset.items():
     if user not in User:
@@ -122,18 +109,14 @@ for user, user_sess in testset.items():
         user_count +=1
     User[user] += 1
     count_sess_len = len(user_sess)  
-    if count_sess_len not in Session:
-        Session[count_sess_len] = 0
+    if count_sess_len not in Session: Session[count_sess_len] = 0
     Session[count_sess_len] += 1
     session_nums_test = session_nums_test + len(user_sess)
     for each_session in user_sess:
         items_in_sess = items_in_sess + len(each_session)
         for i in each_session:
-            if i[1] not in item_type:
-                item_type[i[1]] = True
-
-            if i == [0, 0]:
-                pading_count += 1
+            if i[1] not in item_type: item_type[i[1]] = True
+            if i == [0, 0]: pading_count += 1
   
 session_nums = session_nums_train+session_nums_test
 pading_proportion = pading_count/items_in_sess*100
@@ -175,38 +158,28 @@ for user, user_sess in trainset.items():
         user_count +=1
     User[user] += 1
     count_sess_len = len(user_sess)  
-    if count_sess_len not in Session:
-        Session[count_sess_len] = 0
+    if count_sess_len not in Session: Session[count_sess_len] = 0
     Session[count_sess_len] += 1
     session_nums_train = session_nums_train + len(user_sess)
-    
-    
     for each_session in user_sess:
         items_in_sess = items_in_sess + len(each_session)
         for i in each_session:
-            if i[1] not in item_type:
-                item_type[i[1]] = True
-            if i == [0, 0]:
-                pading_count += 1
-                
+            if i[1] not in item_type: item_type[i[1]] = True
+            if i == [0, 0]: pading_count += 1
 for user, user_sess in testset.items():
     if user not in User:
         User[user] = 0
         user_count +=1
     User[user] += 1
     count_sess_len = len(user_sess)  
-    if count_sess_len not in Session:
-        Session[count_sess_len] = 0
+    if count_sess_len not in Session: Session[count_sess_len] = 0
     Session[count_sess_len] += 1
     session_nums_test = session_nums_test + len(user_sess)
     for each_session in user_sess:
         items_in_sess = items_in_sess + len(each_session)
         for i in each_session:
-            if i[1] not in item_type:
-                item_type[i[1]] = True
-
-            if i == [0, 0]:
-                pading_count += 1
+            if i[1] not in item_type: item_type[i[1]] = True
+            if i == [0, 0]: pading_count += 1
   
 session_nums = session_nums_train+session_nums_test
 pading_proportion = pading_count/items_in_sess*100

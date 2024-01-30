@@ -8,9 +8,7 @@ def load_pickle(pickle_file):
 
 def parse_args():
     parse = ArgumentParser()
-    parse.add_argument("-d", "--Dataset", 
-                       help = "give a dataset | ex: 'Steam / MovieLens_1M / MovieLens_20M'", 
-                       default = "Steam", type = str)
+    parse.add_argument("-d", "--Dataset", help = "give a dataset | ex: 'Steam / MovieLens_1M / MovieLens_20M'", default = "Steam", type = str)
     args = parse.parse_args()
     return args
 
@@ -21,9 +19,7 @@ if __name__ == "__main__":
     if dataset == 'MovieLens-1M':
         dataset = "ml-1m"
         DATASET_FILE = home + "/" + dataset + '/ratings.csv'
-    elif dataset == 'Steam':
-        DATASET_FILE = home + "/" + dataset + '/steam_new.json' # steam_reviews.json
-     
+    elif dataset == 'Steam': DATASET_FILE = home + "/" + dataset + '/steam_new.json' # steam_reviews.json
     Dataset_Name = dataset
     DATASET_DIR = home + "/" + dataset + "/pickle"
     pickle_converted = DATASET_DIR + '/1_converted_timestamps.pickle' 
@@ -44,9 +40,7 @@ if __name__ == "__main__":
         for i in dataset:
             print(i)
             count += 1
-            if count == 1:
-                print()
-                break
+            if count == 1: break
     
     ## pickle_converted (list)
     type(pickle_converted)
@@ -54,14 +48,11 @@ if __name__ == "__main__":
     for i in pickle_converted:
         print(i)
         count += 1
-        if count == 1:
-            print()
-            break
+        if count == 1: break
 
     ## pickle_mapped (DataFrame)
     type(pickle_mapped)
     pickle_mapped
-    
     ## pickle_sessions_1 (DataFrame)
     type(pickle_sessions_1)
     len(pickle_sessions_1)
@@ -71,8 +62,7 @@ if __name__ == "__main__":
     user = pickle_sessions_1['User_ID'].values
     dict_ = {}
     for i in range(len(pickle_sessions_1)):
-        if user[i] not in dict_:
-            dict_[user[i]]=[]
+        if user[i] not in dict_: dict_[user[i]]=[]
         dict_[user[i]].append([time[i], item[i]])
     u_count = 0
     i_count = 0
@@ -81,7 +71,6 @@ if __name__ == "__main__":
         i_count = i_count + len(v)
     print("user : %.2f" %u_count)
     print("items: %.2f" %i_count)
-
     ## pickle_sessions_2 (Dict)
     type(pickle_sessions_2)
     u_count = 0
@@ -97,8 +86,7 @@ if __name__ == "__main__":
         for bb in b:
             print(bb)
             count += 1
-            if count == 1:
-                break
+            if count == 1: break
         break
 
     print("\n查閱: 輸入資料情況")
@@ -151,18 +139,14 @@ if __name__ == "__main__":
             user_count +=1
         User[user] += 1
         count_sess_len = len(user_sess)  
-        if count_sess_len not in Session:
-            Session[count_sess_len] = 0
+        if count_sess_len not in Session: Session[count_sess_len] = 0
         Session[count_sess_len] += 1
         session_nums_train = session_nums_train + len(user_sess)
         for each_session in user_sess:
             items_in_sess = items_in_sess + len(each_session)
             for i in each_session:
-                if i[1] not in item_type:
-                    item_type[i[1]] = True
-    
-                if i == [0, 0]: #計算缺值
-                    pading_count += 1
+                if i[1] not in item_type: item_type[i[1]] = True
+                if i == [0, 0]:  pading_count += 1
                     
     for user, user_sess in testset.items():
         if user not in User:
@@ -170,18 +154,14 @@ if __name__ == "__main__":
             user_count +=1
         User[user] += 1
         count_sess_len = len(user_sess)  
-        if count_sess_len not in Session:
-            Session[count_sess_len] = 0
+        if count_sess_len not in Session: Session[count_sess_len] = 0
         Session[count_sess_len] += 1
         session_nums_test = session_nums_test + len(user_sess)
         for each_session in user_sess:
             items_in_sess = items_in_sess + len(each_session)
             for i in each_session:
-                if i[1] not in item_type:
-                    item_type[i[1]] = True
-                if i == [0, 0]:
-                    pading_count += 1
-      
+                if i[1] not in item_type: item_type[i[1]] = True
+                if i == [0, 0]: pading_count += 1
     session_nums = session_nums_train+session_nums_test
     pading_proportion = pading_count/items_in_sess*100
     pading_proportion = "%.2f" %pading_proportion
@@ -202,7 +182,7 @@ if __name__ == "__main__":
     print(" --  每個session中有幾個互動 | "+str(items_in_sess/session_nums))
     print(" --  總計缺值[0,0] | "+str(pading_count))
     print(" --  缺值佔整體item多少比例 | "+ str(pading_proportion) +"%")
-    
+
     ## Sample
     trainset = pickle_train_test_split_sample['trainset']
     testset = pickle_train_test_split_sample['testset']
@@ -222,36 +202,28 @@ if __name__ == "__main__":
             user_count +=1
         User[user] += 1
         count_sess_len = len(user_sess)  
-        if count_sess_len not in Session:
-            Session[count_sess_len] = 0
+        if count_sess_len not in Session: Session[count_sess_len] = 0
         Session[count_sess_len] += 1
         session_nums_train = session_nums_train + len(user_sess)
         for each_session in user_sess:
             items_in_sess = items_in_sess + len(each_session)
             for i in each_session:
-                if i[1] not in item_type:
-                    item_type[i[1]] = True
-                if i == [0, 0]:
-                    pading_count += 1
-    
+                if i[1] not in item_type: item_type[i[1]] = True
+                if i == [0, 0]: pading_count += 1
     for user, user_sess in testset.items():
         if user not in User:
             User[user] = 0
             user_count +=1
         User[user] += 1
         count_sess_len = len(user_sess)  
-        if count_sess_len not in Session:
-            Session[count_sess_len] = 0
+        if count_sess_len not in Session: Session[count_sess_len] = 0
         Session[count_sess_len] += 1
         session_nums_test = session_nums_test + len(user_sess)
         for each_session in user_sess:
             items_in_sess = items_in_sess + len(each_session)
             for i in each_session:
-                if i[1] not in item_type:
-                    item_type[i[1]] = True
-                if i == [0, 0]:
-                    pading_count += 1
-             
+                if i[1] not in item_type: item_type[i[1]] = True
+                if i == [0, 0]: pading_count += 1
     session_nums = session_nums_train+session_nums_test
     pading_proportion = pading_count/items_in_sess*100
     pading_proportion = "%.2f" %pading_proportion

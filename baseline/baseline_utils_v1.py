@@ -7,7 +7,6 @@ import pickle
 import time
 
 class PlainRNNDataHandler:
-    
     def __init__(self, dataset_path, batch_size, test_log):
         self.dataset_path = dataset_path
         self.batch_size = batch_size
@@ -16,12 +15,10 @@ class PlainRNNDataHandler:
             load_time = time.time()
             dataset = pickle.load(open(self.dataset_path, 'rb'))
             print("|- dataset loaded in", str(time.time()-load_time), "s")
-        
             self.trainset = dataset['trainset']
             self.testset = dataset['testset']
             self.train_session_lengths = dataset['train_session_lengths']
             self.test_session_lengths = dataset['test_session_lengths']
-
             self.num_users = len(self.trainset)
             if len(self.trainset) != len(self.testset):
                 raise Exception("""Testset and trainset have different 
@@ -88,12 +85,10 @@ class PlainRNNDataHandler:
         for i in range(len(self.users_with_remaining_sessions)):
             user = self.users_with_remaining_sessions[i]
             remaining_sessions[i] = len(dataset[user]) - self.user_next_session_to_retrieve[user]
-        
         # index of users to get
         user_list = PlainRNNDataHandler.get_N_highest_indexes(remaining_sessions, self.batch_size)
         for i in range(len(user_list)):
             user_list[i] = self.users_with_remaining_sessions[user_list[i]]
-
         # For each user -> get the next session, and check if we should remove 
         # him from the list of users with remaining sessions
         for user in user_list:
@@ -104,11 +99,9 @@ class PlainRNNDataHandler:
             if self.user_next_session_to_retrieve[user] >= len(dataset[user]):
                 # User have no more session, remove him from users_with_remaining_sessions
                 self.users_with_remaining_sessions.remove(user)
-
         session_batch = [[event[1] for event in session] for session in session_batch]
         x = [session[:-1] for session in session_batch]
         y = [session[1:] for session in session_batch]
-
         return x, y, session_lengths
 
     def get_next_train_batch(self):
@@ -118,13 +111,11 @@ class PlainRNNDataHandler:
         return self.get_next_batch(self.testset, self.test_session_lengths)
 
     def get_latest_epoch(self, epoch_file):
-        if not os.path.isfile(epoch_file):
-            return 0
+        if not os.path.isfile(epoch_file): return 0
         return pickle.load(open(epoch_file, 'rb'))
     
     def store_current_epoch(self, epoch, epoch_file):
         pickle.dump(epoch, open(epoch_file, 'wb'))
-
     
     def add_timestamp_to_message(self, message):
         timestamp = str(datetime.datetime.now())

@@ -38,10 +38,7 @@ def user_sessions_sorting():
             product_id     = line[1]
             #reviewTime     = line[2]
             unixReviewTime = line[3]
-            
-            if user_id not in user_orders:
-                user_orders[user_id] = [] 
-
+            if user_id not in user_orders: user_orders[user_id] = [] 
             user_orders[user_id].append([product_id, unixReviewTime]) 
 
 def sorting_user_orders():
@@ -53,19 +50,15 @@ def sorting_user_orders():
 def connecting_orders_and_users():
     results={}
     results_orders={}
-    
     for user_id in user_orders.keys():
         results[user_id] = {}
         for x in user_orders[user_id]:
-            if x[1] not in results[user_id]:
-                results[user_id][x[1]]=[]
+            if x[1] not in results[user_id]: results[user_id][x[1]]=[]
             results[user_id][x[1]].append([len(results[user_id][x[1]])+1,x[0]])
-    
     for user_id in results.keys():
         results_orders[user_id] = []
         for unixReviewTime in results[user_id].keys():
             results_orders[user_id].append(results[user_id][unixReviewTime])
-        #print(results_orders[user_id])
         user_orders[user_id]=results_orders[user_id]
     del results
     del results_orders
@@ -80,39 +73,30 @@ def calculating_some_statistics():
     for user, orders in user_orders.items():
         n_sessions += len(orders)
         for order in orders:
-            if len(order) > longest:
-                longest = len(order)
-            if len(order) < shortest:
-                shortest = len(order)
-            if str(len(order)) not in session_lengths.keys():
-                session_lengths[str(len(order))] = 0
+            if len(order) > longest: longest = len(order)
+            if len(order) < shortest: shortest = len(order)
+            if str(len(order)) not in session_lengths.keys(): session_lengths[str(len(order))] = 0
             session_lengths[str(len(order))] += 1
             for x in order:
                 product = x[1]
-                if product not in products:
-                    products[product] = True 
-        
+                if product not in products: products[product] = True 
     print("num products (labels):", len(products.keys()))
     print("num users:", len(user_orders.keys()))
     print("num sessions:", n_sessions)
     print("shortest session:", shortest)
     print("longest session:", longest)
-    print()
-    print("SESSION LENGTHS:")
+    print("\nSESSION LENGTHS:")
     for i, j in session_lengths.items():
         print(i, j)
-    
     save_pickle(user_orders, DATASET_USER_SESSIONS_SORTING)
 
 ## user_sessions_rename
 def user_sessions_rename():
     user_sessions = load_pickle(DATASET_USER_SESSIONS_SORTING)
-    
     # Split sessions
     def split_single_session(session):  
         splitted = [session[i:i+MAX_SESSION_LENGTH] for i in range(0, len(session), MAX_SESSION_LENGTH)]
-        if len(splitted[-1]) < 2:
-            del splitted[-1]
+        if len(splitted[-1]) < 2: del splitted[-1]
         return splitted
 
     def perform_session_splits(sessions):
@@ -133,8 +117,7 @@ def user_sessions_rename():
     # Remove users with too few sessions
     users_to_remove = []
     for u, sessions in user_sessions.items():
-        if len(sessions) < MINIMUM_REQUIRED_SESSIONS:
-            users_to_remove.append(u)
+        if len(sessions) < MINIMUM_REQUIRED_SESSIONS: users_to_remove.append(u)
     for u in users_to_remove:
         del(user_sessions[u])
         
@@ -151,15 +134,12 @@ def user_sessions_rename():
             for i in range(len(session)):
                 if isinstance(session[i][1], str) == True:
                     l = session[i][1]
-                    if l not in lab:
-                        lab[l] = len(lab)+1
+                    if l not in lab: lab[l] = len(lab)+1
                     session[i][1] = lab[l]
     print('Check if there is a null value.')
     for k, v in nus.items():
         for session in v:
-            if not session:
-                print('Has Empty !!!!!'+ str(session))
-    
+            if not session: print('Has Empty !!!!!'+ str(session))
     save_pickle(nus, DATASET_USER_SESSIONS_RENAME)
 
 ## train_test_split_pad_value
@@ -172,9 +152,7 @@ def get_session_lengths(dataset):
     return session_lengths
 
 def create_padded_sequence(session):
-    if len(session) == MAX_SESSION_LENGTH:
-        return session
-
+    if len(session) == MAX_SESSION_LENGTH: return session
     length_to_pad = MAX_SESSION_LENGTH - len(session)
     padding = [[PAD_VALUE, PAD_VALUE]] * length_to_pad
     session += padding
@@ -190,7 +168,6 @@ def sample_pickle():
     dataset = load_pickle(DATASET_USER_SESSIONS_RENAME)
     trainset = {}
     testset  = {}
-
     session_lengths_1 = {}
     for k, v in dataset.items():
         session_lengths_1[k] = []
@@ -199,23 +176,19 @@ def sample_pickle():
     count = 0
     for k, v in dataset.items():
         count += 1
-        if count == 100:
-            break
+        if count == 100: break
         n_sessions_1 = len(v)
         split_point = int(0.8 * n_sessions_1)
-        if split_point < 2:
-            raise ValueError('WTF? so few sessions?')
+        if split_point < 2: raise ValueError('WTF? so few sessions?')
         trainset[k] = v[:split_point]
         testset[k] = v[split_point:]
     
     # Also need to know the session lengths
     train_session_lengths = get_session_lengths(trainset)
     test_session_lengths = get_session_lengths(testset)
-    
     # Finally, pad all sequences before storing everything
     pad_sequences(trainset)
     pad_sequences(testset)
-    
     # Put everything in a dict, and just store the dict with pickle
     pickle_dict = {}
     pickle_dict['trainset'] = trainset
@@ -223,7 +196,6 @@ def sample_pickle():
     pickle_dict['train_session_lengths'] = train_session_lengths
     pickle_dict['test_session_lengths'] = test_session_lengths
     save_pickle(pickle_dict , DATASET_TRAIN_TEST_SPLIT_PAD_VALUE_SAMPLE)
-
 
 ## Fully
 def fully_pickle():
@@ -238,19 +210,16 @@ def fully_pickle():
     for k, v in dataset.items():
         n_sessions = len(v)
         split_point = int(0.8 * n_sessions)
-        if split_point < 2:
-            raise ValueError('WTF? so few sessions?')
+        if split_point < 2: raise ValueError('WTF? so few sessions?')
         trainset[k] = v[:split_point]
         testset[k] = v[split_point:]
 
     # Also need to know the session lengths
     train_session_lengths = get_session_lengths(trainset)
     test_session_lengths = get_session_lengths(testset)
-
     # Finally, pad all sequences before storing everything
     pad_sequences(trainset)
     pad_sequences(testset)
-
     # Put everything in a dict, and just store the dict with pickle
     pickle_dict = {}
     pickle_dict['trainset'] = trainset
@@ -268,15 +237,12 @@ def fully_pickle():
     for user, orders in dataset.items():
         n_sessions += len(orders)
         for order in orders:
-            if len(order) > longest:
-                longest = len(order)
-            if len(order) < shortest:
-                shortest = len(order)
+            if len(order) > longest: longest = len(order)
+            if len(order) < shortest: shortest = len(order)
             session_lengths[len(order)] += 1
             for x in order:
                 product = x[1]
-                if product not in products:
-                    products[product] = True
+                if product not in products: products[product] = True
     print("num products (labels):", len(products.keys()))
     print("num users:", len(dataset.keys()))
     print("num sessions:", n_sessions)
@@ -297,10 +263,7 @@ if __name__ == "__main__":
     connecting_orders_and_users()
     print("Calculating some statistics...")
     calculating_some_statistics()
-    if not file_exists(DATASET_USER_SESSIONS_RENAME):
-        user_sessions_rename()
-    if not file_exists(DATASET_TRAIN_TEST_SPLIT_PAD_VALUE_SAMPLE):
-        sample_pickle()
-    if not file_exists(DATASET_TRAIN_TEST_SPLIT_PAD_VALUE):
-        fully_pickle()
+    if not file_exists(DATASET_USER_SESSIONS_RENAME): user_sessions_rename()
+    if not file_exists(DATASET_TRAIN_TEST_SPLIT_PAD_VALUE_SAMPLE): sample_pickle()
+    if not file_exists(DATASET_TRAIN_TEST_SPLIT_PAD_VALUE): fully_pickle()
     print("\n\nDone.")
